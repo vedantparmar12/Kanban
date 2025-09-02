@@ -73,7 +73,7 @@ A comprehensive Kanban board application powered by Neo4j graph database, featur
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/kanban-pr-agent.git
+git clone https://github.com/vedantparmar12/kanban-pr-agent.git
 cd kanban-pr-agent
 ```
 
