@@ -16,10 +16,8 @@ import { boardRouter } from './api/routes/board.routes';
 import { taskRouter } from './api/routes/task.routes';
 import { prRouter } from './api/routes/pr.routes';
 import { docsRouter } from './api/routes/docs.routes';
-import { graphRouter } from './api/routes/graph.routes';
 import { metricsRouter } from './api/routes/metrics.routes';
 import { initializeWebSocket } from './services/websocket.service';
-import { connectDatabase } from './database/neo4j.connection';
 
 dotenv.config();
 
@@ -48,7 +46,6 @@ app.use('/api/tasks', taskRouter);
 app.use('/api/metrics', metricsRouter);
 app.use('/api/pr', prRouter);
 app.use('/api/docs', docsRouter);
-app.use('/api/graph', graphRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
@@ -60,8 +57,6 @@ initializeWebSocket(io);
 
 async function startServer() {
   try {
-    await connectDatabase();
-    
     const port = appConfig.port;
     httpServer.listen(port, () => {
       logger.info(`Server running on port ${port}`);
