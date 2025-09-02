@@ -65,6 +65,11 @@ model User {
   refreshTokens     RefreshToken[]
   notifications     Notification[]
   createdAutomationRules AutomationRule[] @relation("CreatedAutomationRules")
+
+  @@index([email])
+  @@index([isActive])
+  @@index([role])
+  @@index([createdAt])
 }
 
 model RefreshToken {
@@ -103,6 +108,9 @@ model Board {
   @@index([slug])
   @@index([ownerId])
   @@index([organizationId])
+  @@index([isPublic])
+  @@index([isArchived])
+  @@index([createdAt])
 }
 
 model Organization {
@@ -203,7 +211,14 @@ model Task {
   @@index([swimlaneId])
   @@index([assigneeId])
   @@index([creatorId])
-  @@unique([columnId, position])
+  @@index([columnId, position])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([createdAt])
+  @@index([completedAt])
+  @@index([assigneeId, status])
+  @@index([creatorId, createdAt])
 }
 
 model Label {
@@ -277,6 +292,11 @@ model Activity {
   @@index([taskId])
   @@index([userId])
   @@index([createdAt])
+  @@index([entityType])
+  @@index([action])
+  @@index([boardId, createdAt])
+  @@index([taskId, createdAt])
+  @@index([userId, createdAt])
 }
 
 model PullRequest {
@@ -334,6 +354,8 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
 }
 
 enum AutomationTriggerType {
@@ -392,6 +414,9 @@ model AutomationRule {
   @@index([boardId])
   @@index([triggerType])
   @@index([isActive])
+  @@index([boardId, isActive])
+  @@index([creatorId])
+  @@index([lastExecuted])
 }
 
 model AutomationExecution {
@@ -410,4 +435,7 @@ model AutomationExecution {
   @@index([ruleId])
   @@index([taskId])
   @@index([executedAt])
+  @@index([status])
+  @@index([ruleId, executedAt])
+  @@index([taskId, executedAt])
 }

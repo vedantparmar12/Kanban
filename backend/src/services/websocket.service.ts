@@ -19,7 +19,8 @@ export function initializeWebSocket(io: Server) {
 
       const decoded = jwt.verify(token, appConfig.jwtSecret) as { id: string };
       const user = await prisma.user.findUnique({
-        where: { id: decoded.id, isActive: true }
+        where: { id: decoded.id, isActive: true },
+        select: { id: true, isActive: true }
       });
 
       if (!user) {

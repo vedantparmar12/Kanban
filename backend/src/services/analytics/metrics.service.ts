@@ -51,7 +51,14 @@ export interface BurndownDataPoint {
 }
 
 export class MetricsService {
-  async getBoardMetrics(boardId: string, userId: string, dateFrom?: Date, dateTo?: Date): Promise<BoardMetrics> {
+  async getBoardMetrics(
+    boardId: string, 
+    userId: string, 
+    dateFrom?: Date, 
+    dateTo?: Date,
+    limit: number = 1000,
+    offset: number = 0
+  ): Promise<BoardMetrics> {
     await this.checkBoardAccess(boardId, userId);
 
     const board = await prisma.board.findUnique({
@@ -66,12 +73,16 @@ export class MetricsService {
                   ...(dateTo && { lte: dateTo })
                 }
               },
+              take: limit,
+              skip: offset,
+              orderBy: { createdAt: 'desc' },
               include: {
                 activities: {
                   where: {
                     action: { in: ['task_created', 'task_moved', 'task_updated'] }
                   },
-                  orderBy: { createdAt: 'asc' }
+                  orderBy: { createdAt: 'asc' },
+                  take: 50 // Limit activities per task
                 }
               }
             }
@@ -164,6 +175,18 @@ export class MetricsService {
     await this.checkBoardAccess(column.board.id, userId);
 
     return this.calculateColumnMetrics(column, dateFrom, dateTo);
+  }
+
+  async getTotalTasksCount(boardId: string, dateFrom?: Date, dateTo?: Date): Promise<number> {
+    return prisma.task.count({
+      where: {
+        column: { boardId },
+        createdAt: {
+          ...(dateFrom && { gte: dateFrom }),
+          ...(dateTo && { lte: dateTo })
+        }
+      }
+    });
   }
 
   private async calculateTaskMetrics(tasks: any[]): Promise<TaskMetrics[]> {

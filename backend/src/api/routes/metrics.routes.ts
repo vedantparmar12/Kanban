@@ -20,7 +20,9 @@ const columnIdSchema = z.object({
 
 const dateRangeSchema = z.object({
   dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional()
+  dateTo: z.string().datetime().optional(),
+  limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(1000)).optional().default(100),
+  offset: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0)).optional().default(0)
 });
 
 // Get board metrics with cumulative flow and burndown data
@@ -33,12 +35,31 @@ router.get('/board/:boardId',
       const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined;
       const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : undefined;
       
+      const limit = req.query.limit as number || 100;
+      const offset = req.query.offset as number || 0;
+      
       const metrics = await metricsService.getBoardMetrics(
         req.params.boardId,
         req.user!.id,
         dateFrom,
-        dateTo
+        dateTo,
+        limit,
+        offset
       );
+      
+      // Add pagination metadata
+      const totalTasks = await metricsService.getTotalTasksCount(req.params.boardId, dateFrom, dateTo);
+      const hasMore = offset + limit < totalTasks;
+      
+      res.json({
+        ...metrics,
+        pagination: {
+          limit,
+          offset,
+          total: totalTasks,
+          hasMore
+        }
+      });
       
       res.json(metrics);
     } catch (error) {

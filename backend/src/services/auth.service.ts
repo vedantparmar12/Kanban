@@ -55,12 +55,30 @@ export class AuthService {
     
     logger.info(`New user registered: ${user.email}`);
     
-    return { user, ...tokens };
+    return { 
+      user, 
+      accessToken: tokens.accessToken,
+      // Don't return refresh token in response body - it will be set as httpOnly cookie
+      refreshToken: tokens.refreshToken 
+    };
   }
 
   async login(email: string, password: string) {
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true,
+        isActive: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        createdAt: true,
+        lastLogin: true
+      }
     });
 
     if (!user || !user.isActive) {
@@ -84,7 +102,12 @@ export class AuthService {
 
     logger.info(`User logged in: ${user.email}`);
 
-    return { user: userWithoutPassword, ...tokens };
+    return { 
+      user: userWithoutPassword, 
+      accessToken: tokens.accessToken,
+      // Don't return refresh token in response body - it will be set as httpOnly cookie
+      refreshToken: tokens.refreshToken 
+    };
   }
 
   async refreshToken(refreshToken: string) {
@@ -131,7 +154,12 @@ export class AuthService {
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        password: true
+      }
     });
 
     if (!user) {

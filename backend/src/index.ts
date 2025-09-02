@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import 'express-async-errors';
 
@@ -16,6 +17,7 @@ import { taskRouter } from './api/routes/task.routes';
 import { prRouter } from './api/routes/pr.routes';
 import { docsRouter } from './api/routes/docs.routes';
 import { graphRouter } from './api/routes/graph.routes';
+import { metricsRouter } from './api/routes/metrics.routes';
 import { initializeWebSocket } from './services/websocket.service';
 import { connectDatabase } from './database/neo4j.connection';
 
@@ -36,12 +38,14 @@ app.use(cors({
   credentials: true
 }));
 app.use(compression());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRouter);
 app.use('/api/boards', boardRouter);
 app.use('/api/tasks', taskRouter);
+app.use('/api/metrics', metricsRouter);
 app.use('/api/pr', prRouter);
 app.use('/api/docs', docsRouter);
 app.use('/api/graph', graphRouter);

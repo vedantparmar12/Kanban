@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { authService } from '../../services/authService';
 import {
   LineChart,
   Line,
@@ -80,11 +81,9 @@ export const MetricsDashboard: React.FC<MetricsDashboardProps> = ({ boardId }) =
         dateTo: new Date(dateRange.dateTo).toISOString()
       });
 
-      const response = await fetch(`/api/metrics/board/${boardId}?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await authService.makeAuthenticatedRequest(
+        `/api/metrics/board/${boardId}?${params}`
+      );
 
       if (!response.ok) throw new Error('Failed to fetch metrics');
       
