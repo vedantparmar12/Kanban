@@ -1,0 +1,413 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  MEMBER
+  VIEWER
+}
+
+enum TaskPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+  CANCELLED
+}
+
+enum PRStatus {
+  DRAFT
+  OPEN
+  IN_REVIEW
+  APPROVED
+  MERGED
+  CLOSED
+}
+
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  username          String            @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  avatar            String?
+  role              Role              @default(MEMBER)
+  isActive          Boolean           @default(true)
+  
+  lastLogin         DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  boards            BoardMember[]
+  ownedBoards       Board[]
+  tasks             Task[]            @relation("TaskAssignee")
+  createdTasks      Task[]            @relation("TaskCreator")
+  comments          Comment[]
+  activities        Activity[]
+  pullRequests      PullRequest[]
+  reviews           Review[]
+  refreshTokens     RefreshToken[]
+  notifications     Notification[]
+  createdAutomationRules AutomationRule[] @relation("CreatedAutomationRules")
+}
+
+model RefreshToken {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+model Board {
+  id              String          @id @default(cuid())
+  name            String
+  description     String?
+  slug            String          @unique
+  isPublic        Boolean         @default(false)
+  isArchived      Boolean         @default(false)
+  ownerId         String
+  owner           User            @relation(fields: [ownerId], references: [id])
+  organizationId  String?
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  columns         Column[]
+  swimlanes       Swimlane[]
+  members         BoardMember[]
+  labels          Label[]
+  activities      Activity[]
+  automationRules AutomationRule[]
+  
+  @@index([slug])
+  @@index([ownerId])
+  @@index([organizationId])
+}
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logo        String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  boards      Board[]
+  
+  @@index([slug])
+}
+
+model BoardMember {
+  id        String    @id @default(cuid())
+  boardId   String
+  board     Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role      @default(MEMBER)
+  joinedAt  DateTime  @default(now())
+  
+  @@unique([boardId, userId])
+  @@index([boardId])
+  @@index([userId])
+}
+
+model Column {
+  id          String    @id @default(cuid())
+  name        String
+  boardId     String
+  board       Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  position    Int
+  color       String?
+  wipLimit    Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  tasks       Task[]
+  
+  @@index([boardId])
+  @@unique([boardId, position])
+}
+
+model Swimlane {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  boardId     String
+  board       Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  position    Int
+  color       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  tasks       Task[]
+  
+  @@unique([boardId, position])
+  @@index([boardId])
+}
+
+model Task {
+  id              String          @id @default(cuid())
+  title           String
+  description     String?
+  columnId        String
+  column          Column          @relation(fields: [columnId], references: [id])
+  swimlaneId      String?
+  swimlane        Swimlane?       @relation(fields: [swimlaneId], references: [id])
+  position        Int
+  priority        TaskPriority    @default(MEDIUM)
+  status          TaskStatus      @default(TODO)
+  dueDate         DateTime?
+  estimatedHours  Float?
+  actualHours     Float?
+  assigneeId      String?
+  assignee        User?           @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creatorId       String
+  creator         User            @relation("TaskCreator", fields: [creatorId], references: [id])
+  parentTaskId    String?
+  parentTask      Task?           @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks        Task[]          @relation("SubTasks")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  completedAt     DateTime?
+  
+  labels          TaskLabel[]
+  comments        Comment[]
+  attachments     Attachment[]
+  activities      Activity[]
+  pullRequests    PullRequest[]
+  automationExecutions AutomationExecution[]
+  
+  @@index([columnId])
+  @@index([swimlaneId])
+  @@index([assigneeId])
+  @@index([creatorId])
+  @@unique([columnId, position])
+}
+
+model Label {
+  id        String      @id @default(cuid())
+  name      String
+  color     String
+  boardId   String
+  board     Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  
+  tasks     TaskLabel[]
+  
+  @@unique([boardId, name])
+  @@index([boardId])
+}
+
+model TaskLabel {
+  id        String    @id @default(cuid())
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  labelId   String
+  label     Label     @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  
+  @@unique([taskId, labelId])
+  @@index([taskId])
+  @@index([labelId])
+}
+
+model Comment {
+  id          String      @id @default(cuid())
+  content     String
+  taskId      String
+  task        Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User        @relation(fields: [authorId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([taskId])
+  @@index([authorId])
+}
+
+model Attachment {
+  id          String    @id @default(cuid())
+  filename    String
+  url         String
+  size        Int
+  mimeType    String
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedAt  DateTime  @default(now())
+  
+  @@index([taskId])
+}
+
+model Activity {
+  id          String    @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String
+  boardId     String?
+  board       Board?    @relation(fields: [boardId], references: [id])
+  taskId      String?
+  task        Task?     @relation(fields: [taskId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  
+  @@index([boardId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PullRequest {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  branch          String
+  baseBranch      String        @default("main")
+  prNumber        Int?
+  externalId      String?
+  status          PRStatus      @default(DRAFT)
+  taskId          String?
+  task            Task?         @relation(fields: [taskId], references: [id])
+  authorId        String
+  author          User          @relation(fields: [authorId], references: [id])
+  repositoryUrl   String
+  diffUrl         String?
+  mergedAt        DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  reviews         Review[]
+  
+  @@index([taskId])
+  @@index([authorId])
+  @@index([status])
+}
+
+model Review {
+  id            String        @id @default(cuid())
+  pullRequestId String
+  pullRequest   PullRequest   @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  reviewerId    String
+  reviewer      User          @relation(fields: [reviewerId], references: [id])
+  status        String
+  comment       String?
+  createdAt     DateTime      @default(now())
+  
+  @@index([pullRequestId])
+  @@index([reviewerId])
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  type        String
+  title       String
+  message     String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRead      Boolean   @default(false)
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum AutomationTriggerType {
+  TASK_CREATED
+  TASK_MOVED
+  TASK_UPDATED
+  TASK_COMPLETED
+  TASK_OVERDUE
+  WIP_LIMIT_EXCEEDED
+  TIME_IN_COLUMN
+  ASSIGNED_TO_USER
+  PRIORITY_CHANGED
+  DUE_DATE_APPROACHING
+}
+
+enum AutomationActionType {
+  MOVE_TASK
+  ASSIGN_USER
+  ADD_LABEL
+  REMOVE_LABEL
+  SET_PRIORITY
+  SET_DUE_DATE
+  SEND_NOTIFICATION
+  CREATE_SUBTASK
+  ARCHIVE_TASK
+  ADD_COMMENT
+}
+
+model AutomationRule {
+  id            String                  @id @default(cuid())
+  name          String
+  description   String?
+  isActive      Boolean                 @default(true)
+  boardId       String
+  board         Board                   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  creatorId     String
+  creator       User                    @relation("CreatedAutomationRules", fields: [creatorId], references: [id])
+  
+  // Trigger configuration
+  triggerType   AutomationTriggerType
+  triggerConfig Json                    // Flexible config for trigger conditions
+  
+  // Action configuration
+  actionType    AutomationActionType
+  actionConfig  Json                    // Flexible config for action parameters
+  
+  // Execution tracking
+  executionCount Int                    @default(0)
+  lastExecuted  DateTime?
+  
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  
+  executions    AutomationExecution[]
+  
+  @@index([boardId])
+  @@index([triggerType])
+  @@index([isActive])
+}
+
+model AutomationExecution {
+  id            String          @id @default(cuid())
+  ruleId        String
+  rule          AutomationRule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  taskId        String?
+  task          Task?           @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  
+  status        String          // 'success', 'failed', 'skipped'
+  errorMessage  String?
+  executionData Json?           // Data captured during execution
+  
+  executedAt    DateTime        @default(now())
+  
+  @@index([ruleId])
+  @@index([taskId])
+  @@index([executedAt])
+}
