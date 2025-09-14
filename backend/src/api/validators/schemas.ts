@@ -176,6 +176,6 @@ export const querySchemas = {
   })
 };
 
-export const idSchema = z.object({
-  id: z.string()
+export const idSchema = (paramName: string = 'id') => z.object({
+  [paramName]: z.string(),
 });

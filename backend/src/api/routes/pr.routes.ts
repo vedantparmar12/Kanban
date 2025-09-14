@@ -21,7 +21,7 @@ router.post('/create',
 
 router.get('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   async (req: AuthRequest, res, next) => {
     try {
       const pr = await prAgentService.getPR(req.params.id, req.user!.id);
@@ -34,7 +34,7 @@ router.get('/:id',
 
 router.put('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   validateBody(prSchemas.update),
   async (req: AuthRequest, res, next) => {
     try {
@@ -52,7 +52,7 @@ router.put('/:id',
 
 router.post('/:id/review',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   validateBody(prSchemas.review),
   async (req: AuthRequest, res, next) => {
     try {
@@ -70,7 +70,7 @@ router.post('/:id/review',
 
 router.post('/:id/update-docs',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   async (req: AuthRequest, res, next) => {
     try {
       const result = await prAgentService.updateDocumentation(

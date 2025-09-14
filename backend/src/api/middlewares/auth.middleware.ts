@@ -45,7 +45,7 @@ export const authenticate = async (
       role: user.role
     };
 
-    next();
+    return next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid authentication' });
   }
@@ -61,13 +61,13 @@ export const authorize = (...roles: Role[]) => {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
 
-    next();
+    return next();
   };
 };
 
 export const optionalAuth = async (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
@@ -94,8 +94,8 @@ export const optionalAuth = async (
       }
     }
 
-    next();
+    return next();
   } catch (error) {
-    next();
+    return next();
   }
 };

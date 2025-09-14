@@ -10,8 +10,11 @@ import {
 
 import { GitHubClient } from './clients/github-client.js';
 import { KanbanClient } from './clients/kanban-client.js';
+import { Neo4jClient } from './clients/neo4j-client.js';
 import { createLogger } from './utils/logger.js';
 import { MCPTool } from './types/mcp.js';
+import { wrapTool } from './utils/tool-wrapper.js';
+import { Tool } from '@modelcontextprotocol/sdk/server/index.js';
 
 // GitHub Tools
 import { ReadPRTool } from './tools/github/read-pr.js';
@@ -31,19 +34,40 @@ import { SyncPRStatusTool } from './tools/kanban/sync-pr-status.js';
 import { CreateTaskFromPRTool } from './tools/kanban/create-task-from-pr.js';
 import { CreateTaskFromIssueTool } from './tools/kanban/create-task-from-issue.js';
 
+// Neo4j/Graph Database Tools
+import { queryGraphTool } from './tools/neo4j/query-graph.js';
+import { visualizeRelationshipsTool } from './tools/neo4j/visualize-relationships.js';
+import { analyzeCodeDependenciesTool } from './tools/neo4j/analyze-code-dependencies.js';
+import { findSimilarPatternsTool } from './tools/neo4j/find-similar-patterns.js';
+import { extractKnowledgeTool } from './tools/neo4j/extract-knowledge.js';
+
+// Documentation & Knowledge Management Tools
+import { generateApiDocsTool } from './tools/documentation/generate-api-docs.js';
+import { updateChangelogTool } from './tools/documentation/update-changelog.js';
+import { searchDocumentationTool } from './tools/documentation/search-documentation.js';
+
+// Code Analysis & Quality Tools
+import { analyzeCodeQualityTool } from './tools/code-analysis/analyze-code-quality.js';
+import { calculateMetricsTool } from './tools/code-analysis/calculate-metrics.js';
+
+// Team & Project Management Tools
+import { analyzeTeamVelocityTool } from './tools/project-management/analyze-team-velocity.js';
+import { generateReportsTool } from './tools/project-management/generate-reports.js';
+
 const logger = createLogger('KanbanMCPServer');
 
 export class KanbanMCPServer {
   private server: Server;
   private githubClient: GitHubClient;
   private kanbanClient: KanbanClient;
-  private tools: Map<string, MCPTool>;
+  private neo4jClient: Neo4jClient;
+  private tools: Map<string, Tool>;
 
   constructor() {
     this.server = new Server(
       {
         name: 'kanban-mcp-server',
-        version: '1.0.0'
+        version: '2.0.0'
       },
       {
         capabilities: {
@@ -59,6 +83,7 @@ export class KanbanMCPServer {
       process.env.KANBAN_API_URL || 'http://localhost:3000/api',
       process.env.KANBAN_API_TOKEN
     );
+    this.neo4jClient = Neo4jClient.getInstance();
 
     this.tools = new Map();
     this.registerTools();
@@ -66,7 +91,7 @@ export class KanbanMCPServer {
   }
 
   private registerTools(): void {
-    const toolInstances: MCPTool[] = [
+    const classBasedTools: Tool[] = [
       // GitHub tools
       new ReadPRTool(this.githubClient),
       new ListPRFilesTool(this.githubClient),
@@ -86,9 +111,39 @@ export class KanbanMCPServer {
       new CreateTaskFromIssueTool(this.kanbanClient, this.githubClient)
     ];
 
-    for (const tool of toolInstances) {
+    const functionalTools = [
+      // Neo4j/Graph Database Tools
+      queryGraphTool,
+      visualizeRelationshipsTool,
+      analyzeCodeDependenciesTool,
+      findSimilarPatternsTool,
+      extractKnowledgeTool,
+
+      // Documentation & Knowledge Management Tools
+      generateApiDocsTool,
+      updateChangelogTool,
+      searchDocumentationTool,
+
+      // Code Analysis & Quality Tools
+      analyzeCodeQualityTool,
+      calculateMetricsTool,
+
+      // Team & Project Management Tools
+      analyzeTeamVelocityTool,
+      generateReportsTool
+    ];
+
+    // Register class-based tools
+    for (const tool of classBasedTools) {
       this.tools.set(tool.name, tool);
-      logger.info({ tool: tool.name }, 'Tool registered');
+      logger.info({ tool: tool.name }, 'Class-based tool registered');
+    }
+
+    // Register functional tools using wrapper
+    for (const tool of functionalTools) {
+      const wrappedTool = wrapTool(tool);
+      this.tools.set(wrappedTool.name, wrappedTool);
+      logger.info({ tool: wrappedTool.name }, 'Functional tool registered');
     }
 
     logger.info({ count: this.tools.size }, 'All tools registered successfully');
@@ -97,11 +152,11 @@ export class KanbanMCPServer {
   private setupHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       logger.debug('Listing available tools');
-      
+
       const tools = Array.from(this.tools.values()).map(tool => ({
         name: tool.name,
         description: tool.description,
-        inputSchema: this.zodToJsonSchema(tool.inputSchema)
+        inputSchema: tool.inputSchema
       }));
 
       return { tools };
@@ -109,7 +164,7 @@ export class KanbanMCPServer {
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
       const { name, arguments: args } = request.params;
-      
+
       logger.info({ tool: name, args }, 'Tool called');
 
       const tool = this.tools.get(name);
@@ -121,8 +176,8 @@ export class KanbanMCPServer {
       }
 
       try {
-        const response = await tool.handler(args);
-        
+        const response = await tool.execute(args);
+
         if (response.isError) {
           logger.error({ tool: name, response }, 'Tool returned error');
         } else {
@@ -130,7 +185,7 @@ export class KanbanMCPServer {
         }
 
         return {
-          content: response.content,
+          content: response.content || [],
           _meta: response._meta
         };
       } catch (error) {
@@ -230,25 +285,32 @@ export class KanbanMCPServer {
 
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
-    
+
     logger.info('Starting Kanban MCP server...');
-    
+
     try {
       // Test connections in background (non-blocking)
       Promise.all([
         this.githubClient.testConnection(),
-        this.kanbanClient.testConnection()
-      ]).then(([githubOk, kanbanOk]) => {
+        this.kanbanClient.testConnection(),
+        this.connectNeo4j()
+      ]).then(([githubOk, kanbanOk, neo4jOk]) => {
         if (githubOk) {
           logger.info('GitHub API connection verified');
         } else {
           logger.warn('GitHub API connection failed - check GITHUB_TOKEN');
         }
-        
+
         if (kanbanOk) {
           logger.info('Kanban API connection verified');
         } else {
           logger.warn('Kanban API connection failed - check KANBAN_API_URL and KANBAN_API_TOKEN');
+        }
+
+        if (neo4jOk) {
+          logger.info('Neo4j connection verified');
+        } else {
+          logger.warn('Neo4j connection failed - check NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD');
         }
       }).catch(err => {
         logger.warn({ error: err }, 'Connection tests failed');
@@ -256,15 +318,31 @@ export class KanbanMCPServer {
 
       await this.server.connect(transport);
       logger.info('Kanban MCP server started successfully');
-      
+
     } catch (error) {
       logger.error({ error }, 'Failed to start Kanban MCP server');
       throw error;
     }
   }
 
+  private async connectNeo4j(): Promise<boolean> {
+    try {
+      await this.neo4jClient.connect();
+      return await this.neo4jClient.verifyConnection();
+    } catch (error) {
+      return false;
+    }
+  }
+
   async stop(): Promise<void> {
     logger.info('Stopping Kanban MCP server...');
+
+    try {
+      await this.neo4jClient.disconnect();
+    } catch (error) {
+      logger.warn({ error }, 'Error disconnecting from Neo4j');
+    }
+
     await this.server.close();
     logger.info('Kanban MCP server stopped');
   }

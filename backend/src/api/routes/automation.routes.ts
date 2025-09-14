@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validation.middleware';
+import { idSchema } from '../validators/schemas';
 import { automationService } from '../../services/automation/automation.service';
 import { z } from 'zod';
 import { AutomationTriggerType, AutomationActionType } from '@prisma/client';
+import { prisma } from '../../database/connection';
+import { AppError } from '../middlewares/error.middleware';
 
 const router = Router();
 
@@ -25,18 +28,12 @@ const updateRuleSchema = z.object({
   actionConfig: z.record(z.any()).optional()
 });
 
-const boardIdSchema = z.object({
-  boardId: z.string()
-});
 
-const ruleIdSchema = z.object({
-  ruleId: z.string()
-});
 
 // Get automation rules for a board
 router.get('/',
   authenticate,
-  validateQuery(boardIdSchema),
+  validateQuery(idSchema('boardId')),
   async (req: AuthRequest, res, next) => {
     try {
       const rules = await automationService.getRules(
@@ -67,7 +64,7 @@ router.post('/',
 // Update automation rule
 router.put('/:ruleId',
   authenticate,
-  validateParams(ruleIdSchema),
+  validateParams(idSchema('ruleId')),
   validateBody(updateRuleSchema),
   async (req: AuthRequest, res, next) => {
     try {
@@ -86,7 +83,7 @@ router.put('/:ruleId',
 // Delete automation rule
 router.delete('/:ruleId',
   authenticate,
-  validateParams(ruleIdSchema),
+  validateParams(idSchema('ruleId')),
   async (req: AuthRequest, res, next) => {
     try {
       await automationService.deleteRule(req.params.ruleId, req.user!.id);
@@ -100,7 +97,7 @@ router.delete('/:ruleId',
 // Get automation rule executions
 router.get('/:ruleId/executions',
   authenticate,
-  validateParams(ruleIdSchema),
+  validateParams(idSchema('ruleId')),
   async (req: AuthRequest, res, next) => {
     try {
       const executions = await prisma.automationExecution.findMany({
@@ -296,7 +293,7 @@ router.get('/action-types',
 // Manual trigger for testing rules
 router.post('/:ruleId/test',
   authenticate,
-  validateParams(ruleIdSchema),
+  validateParams(idSchema('ruleId')),
   validateBody(z.object({ taskId: z.string() })),
   async (req: AuthRequest, res, next) => {
     try {

@@ -47,7 +47,7 @@ model User {
   firstName         String?
   lastName          String?
   avatar            String?
-  role              Role              @default(MEMBER)
+  role              Role              @default(MEMBER) // Global role, for system-level permissions
   isActive          Boolean           @default(true)
   
   lastLogin         DateTime?
@@ -65,6 +65,7 @@ model User {
   refreshTokens     RefreshToken[]
   notifications     Notification[]
   createdAutomationRules AutomationRule[] @relation("CreatedAutomationRules")
+  teamMemberships   TeamMember[]
 
   @@index([email])
   @@index([isActive])
@@ -93,8 +94,8 @@ model Board {
   isArchived      Boolean         @default(false)
   ownerId         String
   owner           User            @relation(fields: [ownerId], references: [id])
-  organizationId  String?
-  organization    Organization?   @relation(fields: [organizationId], references: [id])
+  teamId          String?
+  team            Team?           @relation(fields: [teamId], references: [id])
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   
@@ -107,13 +108,13 @@ model Board {
   
   @@index([slug])
   @@index([ownerId])
-  @@index([organizationId])
+  @@index([teamId])
   @@index([isPublic])
   @@index([isArchived])
   @@index([createdAt])
 }
 
-model Organization {
+model Team {
   id          String    @id @default(cuid())
   name        String
   slug        String    @unique
@@ -123,8 +124,23 @@ model Organization {
   updatedAt   DateTime  @updatedAt
   
   boards      Board[]
+  members     TeamMember[]
   
   @@index([slug])
+}
+
+model TeamMember {
+  id        String    @id @default(cuid())
+  teamId    String
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role      @default(MEMBER)
+  joinedAt  DateTime  @default(now())
+  
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
 }
 
 model BoardMember {

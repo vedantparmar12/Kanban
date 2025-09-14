@@ -16,3 +16,9 @@ httpx
 aiofiles
 jinja2
 pyyaml
+neo4j
+numpy
+scikit-learn
+networkx
+matplotlib
+plotly

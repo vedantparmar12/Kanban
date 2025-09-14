@@ -10,6 +10,32 @@ from datetime import datetime
 from pr_agent import PRAgent
 from doc_generator import DocumentationGenerator
 from readme_updater import ReadmeUpdater
+from llm import llm_client, GenerationRequest
+
+# Import new MCP tools
+try:
+    from neo4j_tools import Neo4jTools
+    neo4j_tools = Neo4jTools()
+    neo4j_available = True
+except ImportError:
+    neo4j_available = False
+    neo4j_tools = None
+
+try:
+    from code_analysis_tools import CodeAnalysisTools
+    code_analysis_tools = CodeAnalysisTools()
+    code_analysis_available = True
+except ImportError:
+    code_analysis_available = False
+    code_analysis_tools = None
+
+try:
+    from project_management_tools import ProjectManagementTools
+    project_management_tools = ProjectManagementTools()
+    project_management_available = True
+except ImportError:
+    project_management_available = False
+    project_management_tools = None
 
 load_dotenv()
 
@@ -46,10 +72,25 @@ def verify_api_key(x_api_key: str = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return x_api_key
 
+@app.post("/api/generate")
+async def generate(request: GenerationRequest, api_key: str = Depends(verify_api_key)):
+    try:
+        result = llm_client.generate(
+            prompt=request.prompt,
+            model=request.model,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens
+        )
+        return {"result": result}
+    except Exception as e:
+        logger.error(f"Generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/rpc", response_model=RPCResponse)
 async def handle_rpc(request: RPCRequest, api_key: str = Depends(verify_api_key)):
     try:
         method_handlers = {
+            # Original PR and documentation tools
             "analyze_code_changes": pr_agent.analyze_changes,
             "generate_pr_description": pr_agent.generate_description,
             "select_reviewers": pr_agent.select_reviewers,
@@ -59,6 +100,37 @@ async def handle_rpc(request: RPCRequest, api_key: str = Depends(verify_api_key)
             "update_readme": readme_updater.update,
             "update_project_docs": doc_generator.update_project_docs,
         }
+
+        # Add Neo4j/Graph Database tools
+        if neo4j_available and neo4j_tools:
+            method_handlers.update({
+                "query_graph": neo4j_tools.query_graph,
+                "visualize_relationships": neo4j_tools.visualize_relationships,
+                "analyze_code_dependencies": neo4j_tools.analyze_code_dependencies,
+                "find_similar_patterns": neo4j_tools.find_similar_patterns,
+                "extract_knowledge": neo4j_tools.extract_knowledge,
+            })
+
+        # Add Code Analysis tools
+        if code_analysis_available and code_analysis_tools:
+            method_handlers.update({
+                "analyze_code_quality": code_analysis_tools.analyze_code_quality,
+                "calculate_metrics": code_analysis_tools.calculate_metrics,
+            })
+
+        # Add Documentation & Knowledge Management tools
+        method_handlers.update({
+            "generate_api_docs": doc_generator.generate_api_docs,
+            "update_changelog": doc_generator.update_changelog,
+            "search_documentation": doc_generator.search_documentation,
+        })
+
+        # Add Project Management tools
+        if project_management_available and project_management_tools:
+            method_handlers.update({
+                "analyze_team_velocity": project_management_tools.analyze_team_velocity,
+                "generate_reports": project_management_tools.generate_reports,
+            })
         
         handler = method_handlers.get(request.method)
         if not handler:
@@ -79,14 +151,36 @@ async def handle_rpc(request: RPCRequest, api_key: str = Depends(verify_api_key)
 
 @app.get("/health")
 async def health_check():
+    services = {
+        "pr_agent": "active",
+        "doc_generator": "active",
+        "readme_updater": "active"
+    }
+
+    # Check Neo4j tools availability
+    if neo4j_available:
+        services["neo4j_tools"] = "active"
+    else:
+        services["neo4j_tools"] = "unavailable"
+
+    # Check code analysis tools
+    if code_analysis_available:
+        services["code_analysis_tools"] = "active"
+    else:
+        services["code_analysis_tools"] = "unavailable"
+
+    # Check project management tools
+    if project_management_available:
+        services["project_management_tools"] = "active"
+    else:
+        services["project_management_tools"] = "unavailable"
+
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "services": {
-            "pr_agent": "active",
-            "doc_generator": "active",
-            "readme_updater": "active"
-        }
+        "version": "2.0.0",
+        "total_tools": len([k for k in services.keys() if services[k] == "active"]) * 3,  # Approx tools per service
+        "services": services
     }
 
 @app.post("/webhook/github")

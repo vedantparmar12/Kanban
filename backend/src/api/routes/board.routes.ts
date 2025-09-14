@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { authenticate, authorize, AuthRequest } from '../middlewares/auth.middleware';
+import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validation.middleware';
 import { boardSchemas, idSchema, querySchemas } from '../validators/schemas';
 import { boardService } from '../../services/kanban/board.service';
 import { Role } from '@prisma/client';
+import { canAccessBoard } from '../middlewares/permission.middleware';
 
 const router = Router();
 
@@ -39,13 +40,14 @@ router.post('/',
   }
 );
 
-router.get('/:id',
+router.get('/:boardId',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema('boardId')),
+  canAccessBoard(Role.VIEWER),
   async (req: AuthRequest, res, next) => {
     try {
       const board = await boardService.getBoard(
-        req.params.id,
+        req.params.boardId,
         req.user!.id
       );
       res.json(board);
@@ -55,14 +57,15 @@ router.get('/:id',
   }
 );
 
-router.put('/:id',
+router.put('/:boardId',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema('boardId')),
   validateBody(boardSchemas.update),
+  canAccessBoard(Role.MANAGER),
   async (req: AuthRequest, res, next) => {
     try {
       const board = await boardService.updateBoard(
-        req.params.id,
+        req.params.boardId,
         req.user!.id,
         req.body
       );
@@ -73,13 +76,14 @@ router.put('/:id',
   }
 );
 
-router.delete('/:id',
+router.delete('/:boardId',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema('boardId')),
+  canAccessBoard(Role.ADMIN),
   async (req: AuthRequest, res, next) => {
     try {
       await boardService.deleteBoard(
-        req.params.id,
+        req.params.boardId,
         req.user!.id
       );
       res.status(204).send();
@@ -89,14 +93,15 @@ router.delete('/:id',
   }
 );
 
-router.post('/:id/members',
+router.post('/:boardId/members',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema('boardId')),
   validateBody(boardSchemas.addMember),
+  canAccessBoard(Role.MANAGER),
   async (req: AuthRequest, res, next) => {
     try {
       const member = await boardService.addMember(
-        req.params.id,
+        req.params.boardId,
         req.user!.id,
         req.body.userId,
         req.body.role
@@ -108,13 +113,14 @@ router.post('/:id/members',
   }
 );
 
-router.delete('/:id/members/:userId',
+router.delete('/:boardId/members/:userId',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema('boardId').merge(idSchema('userId'))),
+  canAccessBoard(Role.MANAGER),
   async (req: AuthRequest, res, next) => {
     try {
       await boardService.removeMember(
-        req.params.id,
+        req.params.boardId,
         req.user!.id,
         req.params.userId
       );
@@ -125,13 +131,14 @@ router.delete('/:id/members/:userId',
   }
 );
 
-router.get('/:id/analytics',
+router.get('/:boardId/analytics',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema('boardId')),
+  canAccessBoard(Role.VIEWER),
   async (req: AuthRequest, res, next) => {
     try {
       const analytics = await boardService.getBoardAnalytics(
-        req.params.id,
+        req.params.boardId,
         req.user!.id
       );
       res.json(analytics);
