@@ -34,7 +34,7 @@ router.post('/',
 
 router.get('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   async (req: AuthRequest, res, next) => {
     try {
       const task = await taskService.getTask(req.params.id, req.user!.id);
@@ -47,7 +47,7 @@ router.get('/:id',
 
 router.put('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   validateBody(taskSchemas.update),
   async (req: AuthRequest, res, next) => {
     try {
@@ -65,7 +65,7 @@ router.put('/:id',
 
 router.delete('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   async (req: AuthRequest, res, next) => {
     try {
       await taskService.deleteTask(req.params.id, req.user!.id);
@@ -78,7 +78,7 @@ router.delete('/:id',
 
 router.put('/:id/move',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   validateBody(taskSchemas.move),
   async (req: AuthRequest, res, next) => {
     try {
@@ -98,7 +98,7 @@ router.put('/:id/move',
 
 router.post('/:id/comments',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   validateBody(taskSchemas.comment),
   async (req: AuthRequest, res, next) => {
     try {

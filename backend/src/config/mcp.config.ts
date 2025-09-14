@@ -9,11 +9,12 @@ export const mcpConfig = {
     webhookSecret: process.env.GITHUB_WEBHOOK_SECRET || '',
     apiUrl: process.env.GITHUB_API_URL || 'https://api.github.com'
   },
-  openai: {
-    apiKey: process.env.OPENAI_API_KEY || '',
+  llm: {
+    apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || '',
     model: process.env.OPENAI_MODEL || 'gpt-4',
     temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7'),
-    maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '2000', 10)
+    maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '2000', 10),
+    baseURL: process.env.OPENROUTER_BASE_URL || 'https://api.openai.com/v1',
   },
   
 };

@@ -1,14 +1,18 @@
-import OpenAI from 'openai';
+import axios, { AxiosInstance } from 'axios';
 import { mcpConfig } from '../../config/mcp.config';
 import { logger } from '../../utils/logger';
 import { cache } from '../../utils/cache';
 
 export class LLMService {
-  private openai: OpenAI;
+  private apiClient: AxiosInstance;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: mcpConfig.openai.apiKey
+    this.apiClient = axios.create({
+      baseURL: mcpConfig.serverUrl,
+      headers: {
+        'X-API-Key': mcpConfig.apiKey,
+      },
+      timeout: mcpConfig.timeout,
     });
   }
 
@@ -25,23 +29,20 @@ export class LLMService {
     }
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: options?.model || mcpConfig.openai.model,
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant for a Kanban board application.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: options?.temperature || mcpConfig.openai.temperature,
-        max_tokens: options?.maxTokens || mcpConfig.openai.maxTokens
+      const response = await this.apiClient.post('/api/generate', {
+        prompt,
+        model: options?.model || mcpConfig.llm.model,
+        temperature: options?.temperature || mcpConfig.llm.temperature,
+        max_tokens: options?.maxTokens || mcpConfig.llm.maxTokens,
       });
 
-      const result = completion.choices[0]?.message?.content || '';
+      const result = response.data.result || '';
       
       await cache.set(cacheKey, result, 3600);
       
       return result;
     } catch (error) {
-      logger.error('LLM generation failed:', error);
+      logger.error('LLM generation failed via MCP gateway:', error.response?.data || error.message);
       throw error;
     }
   }

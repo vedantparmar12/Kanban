@@ -3,11 +3,12 @@ import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validation.middleware';
 import { notificationService } from '../../services/notifications/notification.service';
 import { z } from 'zod';
+import { idSchema } from '../validators/schemas';
 
 const router = Router();
 
 const notificationQuerySchema = z.object({
-  unreadOnly: z.string().transform(val => val === 'true').optional(),
+  unreadOnly: z.boolean().optional(),
   limit: z.coerce.number().positive().max(100).optional(),
   offset: z.coerce.number().min(0).optional()
 });
@@ -16,22 +17,19 @@ const markAsReadSchema = z.object({
   notificationIds: z.array(z.string())
 });
 
-const notificationIdSchema = z.object({
-  notificationId: z.string()
-});
-
 // Get user's notifications
 router.get('/',
   authenticate,
   validateQuery(notificationQuerySchema),
   async (req: AuthRequest, res, next) => {
     try {
+      const { unreadOnly, limit, offset } = req.query;
       const result = await notificationService.getUserNotifications(req.user!.id, {
-        unreadOnly: req.query.unreadOnly as boolean,
-        limit: req.query.limit as number,
-        offset: req.query.offset as number
+        unreadOnly: unreadOnly as boolean | undefined,
+        limit: limit as number | undefined,
+        offset: offset as number | undefined
       });
-      res.json(result);
+      return res.json(result);
     } catch (error) {
       next(error);
     }
@@ -46,7 +44,7 @@ router.get('/counts',
       const result = await notificationService.getUserNotifications(req.user!.id, {
         limit: 0
       });
-      res.json({
+      return res.json({
         totalCount: result.totalCount,
         unreadCount: result.unreadCount
       });
@@ -66,7 +64,7 @@ router.put('/mark-read',
         req.user!.id,
         req.body.notificationIds
       );
-      res.json({ markedCount: result.count });
+      return res.json({ markedCount: result.count });
     } catch (error) {
       next(error);
     }
@@ -79,7 +77,7 @@ router.put('/mark-all-read',
   async (req: AuthRequest, res, next) => {
     try {
       const result = await notificationService.markAllAsRead(req.user!.id);
-      res.json({ markedCount: result.count });
+      return res.json({ markedCount: result.count });
     } catch (error) {
       next(error);
     }
@@ -89,14 +87,14 @@ router.put('/mark-all-read',
 // Delete a specific notification
 router.delete('/:notificationId',
   authenticate,
-  validateParams(notificationIdSchema),
+  validateParams(idSchema('notificationId')),
   async (req: AuthRequest, res, next) => {
     try {
       await notificationService.deleteNotification(
         req.user!.id,
         req.params.notificationId
       );
-      res.status(204).send();
+      return res.status(204).send();
     } catch (error) {
       next(error);
     }
@@ -109,7 +107,7 @@ router.delete('/',
   async (req: AuthRequest, res, next) => {
     try {
       const result = await notificationService.deleteAllNotifications(req.user!.id);
-      res.json({ deletedCount: result.count });
+      return res.json({ deletedCount: result.count });
     } catch (error) {
       next(error);
     }
@@ -134,7 +132,7 @@ if (process.env.NODE_ENV === 'development') {
           message: req.body.message,
           recipients: req.body.recipientId ? [req.body.recipientId] : [req.user!.id]
         });
-        res.json(notifications);
+        return res.json(notifications);
       } catch (error) {
         next(error);
       }

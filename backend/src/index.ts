@@ -17,6 +17,7 @@ import { taskRouter } from './api/routes/task.routes';
 import { prRouter } from './api/routes/pr.routes';
 import { docsRouter } from './api/routes/docs.routes';
 import { metricsRouter } from './api/routes/metrics.routes';
+import { teamRoutes } from './api/routes/team.routes';
 import { initializeWebSocket } from './services/websocket.service';
 
 dotenv.config();
@@ -46,6 +47,7 @@ app.use('/api/tasks', taskRouter);
 app.use('/api/metrics', metricsRouter);
 app.use('/api/pr', prRouter);
 app.use('/api/docs', docsRouter);
+app.use('/api/teams', teamRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });

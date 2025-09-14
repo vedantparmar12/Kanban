@@ -42,7 +42,7 @@ router.post('/',
 
 router.get('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   async (req: AuthRequest, res, next) => {
     try {
       const swimlane = await swimlaneService.getSwimlane(req.params.id, req.user!.id);
@@ -55,7 +55,7 @@ router.get('/:id',
 
 router.put('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   validateBody(swimlaneSchemas.update),
   async (req: AuthRequest, res, next) => {
     try {
@@ -73,7 +73,7 @@ router.put('/:id',
 
 router.delete('/:id',
   authenticate,
-  validateParams(idSchema),
+  validateParams(idSchema()),
   async (req: AuthRequest, res, next) => {
     try {
       await swimlaneService.deleteSwimlane(req.params.id, req.user!.id);
@@ -86,7 +86,7 @@ router.delete('/:id',
 
 router.put('/reorder/:boardId',
   authenticate,
-  validateParams(z.object({ boardId: z.string() })),
+  validateParams(idSchema('boardId')),
   validateBody(swimlaneSchemas.reorder),
   async (req: AuthRequest, res, next) => {
     try {

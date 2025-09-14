@@ -98,7 +98,7 @@ export const authRateLimit = (req: Request, res: Response, next: NextFunction) =
     });
   }
 
-  next();
+  return next();
 };
 
 export const generalRateLimit = (req: Request, res: Response, next: NextFunction) => {
@@ -119,7 +119,7 @@ export const generalRateLimit = (req: Request, res: Response, next: NextFunction
     });
   }
 
-  next();
+  return next();
 };
 
 // Custom rate limiter factory for specific use cases
@@ -143,6 +143,6 @@ export const createRateLimit = (windowMs: number, maxRequests: number) => {
       });
     }
 
-    next();
+    return next();
   };
 };

@@ -49,7 +49,7 @@ router.post('/login',
       
       // Don't send refresh token in response body
       const { refreshToken, ...responseData } = result;
-      res.json(responseData);
+      return res.json(responseData);
     } catch (error) {
       next(error);
     }
