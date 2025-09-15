@@ -10,7 +10,7 @@ export class CreateIssueTool implements Tool {
   description = 'Create a new GitHub issue';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

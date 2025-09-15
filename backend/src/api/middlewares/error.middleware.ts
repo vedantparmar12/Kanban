@@ -57,7 +57,7 @@ export const errorHandler = (
     ? 'Internal server error' 
     : err.message;
 
-  res.status(statusCode).json({
+  return res.status(statusCode).json({
     error: message
   });
 };

@@ -27,7 +27,7 @@ export const analyzeCodeQualityTool: ToolHandler = {
   name: 'analyze-code-quality',
   description: 'Run comprehensive code quality analysis including complexity, maintainability, and security checks',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       source: {
         type: 'string',
@@ -59,7 +59,7 @@ export const analyzeCodeQualityTool: ToolHandler = {
         default: false
       },
       threshold: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           complexity: { type: 'number', default: 10 },
           maintainability: { type: 'number', default: 60 },
@@ -406,7 +406,7 @@ function calculateCyclomaticComplexity(content: string, language: string): Array
   switch (language) {
     case 'javascript':
     case 'typescript':
-      return calculateJSComplexity(content);
+      return calculateJSComplexity(content, language);
     case 'python':
       return calculatePythonComplexity(content);
     case 'java':
@@ -416,7 +416,7 @@ function calculateCyclomaticComplexity(content: string, language: string): Array
   }
 }
 
-function calculateJSComplexity(content: string): Array<{ name: string; complexity: number; line: number }> {
+function calculateJSComplexity(content: string, language: string = 'javascript'): Array<{ name: string; complexity: number; line: number }> {
   const results: Array<{ name: string; complexity: number; line: number }> = [];
   const lines = content.split('\n');
 

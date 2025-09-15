@@ -11,7 +11,7 @@ export class SubmitReviewTool implements Tool {
   description = 'Submit a complete review for a GitHub pull request';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',
@@ -38,7 +38,7 @@ export class SubmitReviewTool implements Tool {
         type: 'array',
         description: 'Array of line-specific comments to include in the review',
         items: {
-          type: 'object',
+          type: 'object' as const,
           properties: {
             path: {
               type: 'string',

@@ -36,7 +36,7 @@ router.get('/board/:boardId',
       const totalTasks = await metricsService.getTotalTasksCount(req.params.boardId, dateFrom ? new Date(dateFrom as string) : undefined, dateTo ? new Date(dateTo as string) : undefined);
       const hasMore = (offset as unknown as number) + (limit as unknown as number) < totalTasks;
       
-      return res.json({
+      res.json({
         ...metrics,
         pagination: {
           limit,
@@ -46,7 +46,7 @@ router.get('/board/:boardId',
         }
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -62,9 +62,9 @@ router.get('/task/:taskId',
         req.user!.id
       );
       
-      return res.json(metrics);
+      res.json(metrics);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -85,9 +85,9 @@ router.get('/column/:columnId',
         dateTo ? new Date(dateTo as string) : undefined
       );
       
-      return res.json(metrics);
+      res.json(metrics);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -117,7 +117,7 @@ router.get('/board/:boardId/cycle-time-distribution',
       
       return res.json({ distribution: cycleTimeDistribution });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -152,7 +152,7 @@ router.get('/board/:boardId/wip-violations',
         violationsByColumn: wipViolations
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );

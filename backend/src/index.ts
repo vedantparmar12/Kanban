@@ -49,7 +49,7 @@ app.use('/api/pr', prRouter);
 app.use('/api/docs', docsRouter);
 app.use('/api/teams', teamRoutes);
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 

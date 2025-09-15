@@ -28,7 +28,7 @@ export const generateReportsTool: ToolHandler = {
   name: 'generate-reports',
   description: 'Generate comprehensive project status reports with metrics, insights, and recommendations',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       reportType: {
         type: 'string',
@@ -37,7 +37,7 @@ export const generateReportsTool: ToolHandler = {
         default: 'sprint'
       },
       scope: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           teamId: { type: 'string' },
           projectId: { type: 'string' },
@@ -47,7 +47,7 @@ export const generateReportsTool: ToolHandler = {
         description: 'Scope filters for the report'
       },
       timeframe: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           startDate: { type: 'string' },
           endDate: { type: 'string' }
@@ -462,7 +462,19 @@ async function generateSection(section: string, data: any, audienceLevel: string
 function generateSummarySection(data: any, audienceLevel: string) {
   const { metrics, issues, achievements } = data;
 
-  let summary = {
+  let summary: {
+    overview: {
+      totalTasks: any;
+      completedTasks: any;
+      completionRate: string;
+      totalStoryPoints: any;
+      completedStoryPoints: any;
+    };
+    keyHighlights: any;
+    mainConcerns: any;
+    businessImpact?: any;
+    nextSteps?: any;
+  } = {
     overview: {
       totalTasks: metrics.totalTasks,
       completedTasks: metrics.completedTasks,

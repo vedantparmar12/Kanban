@@ -22,7 +22,7 @@ export const analyzeTeamVelocityTool: ToolHandler = {
   name: 'analyze-team-velocity',
   description: 'Calculate sprint/iteration metrics, team velocity, and performance analytics',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       teamId: {
         type: 'string',

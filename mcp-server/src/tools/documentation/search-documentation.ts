@@ -21,7 +21,7 @@ export const searchDocumentationTool: ToolHandler = {
   name: 'search-documentation',
   description: 'Semantic search across all documentation using graph relationships and embeddings',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       query: {
         type: 'string',

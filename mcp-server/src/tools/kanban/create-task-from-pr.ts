@@ -11,7 +11,7 @@ export class CreateTaskFromPRTool implements Tool {
   description = 'Create a new Kanban task from a GitHub pull request';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',
@@ -126,7 +126,7 @@ export class CreateTaskFromPRTool implements Tool {
       });
 
       // Set initial status based on PR state
-      let taskStatus = 'IN_REVIEW';
+      let taskStatus: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | "BLOCKED" = 'IN_REVIEW';
       if (pr.state === 'closed') {
         taskStatus = pr.merged ? 'DONE' : 'TODO';
       } else if (!pr.mergeable) {

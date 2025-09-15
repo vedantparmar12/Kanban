@@ -13,9 +13,20 @@ import type {
 const logger = createLogger('KanbanClient');
 
 export class KanbanClient {
+  private static instance: KanbanClient;
   private api: AxiosInstance;
   private baseURL: string;
   private token?: string;
+
+  static getInstance(baseURL?: string, token?: string): KanbanClient {
+    if (!KanbanClient.instance) {
+      KanbanClient.instance = new KanbanClient(
+        baseURL || process.env.KANBAN_API_URL || 'http://localhost:3001',
+        token || process.env.KANBAN_API_TOKEN
+      );
+    }
+    return KanbanClient.instance;
+  }
 
   constructor(baseURL: string, token?: string) {
     this.baseURL = baseURL;

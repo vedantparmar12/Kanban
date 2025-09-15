@@ -19,7 +19,7 @@ export const calculateMetricsTool: ToolHandler = {
   name: 'calculate-metrics',
   description: 'Calculate comprehensive code complexity and maintainability metrics',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       source: {
         type: 'string',
@@ -83,7 +83,7 @@ export const calculateMetricsTool: ToolHandler = {
       if (sourceType === 'file') {
         await analyzeFile(source, metrics, results);
       } else {
-        await analyzeDirectory(source, metrics, languages, includeTests, results);
+        await analyzeDirectory(source, metrics, results, languages, includeTests);
       }
 
       // Calculate aggregated metrics
@@ -129,8 +129,8 @@ async function analyzeFile(filePath: string, metrics: string[], results: any) {
   }
 }
 
-async function analyzeDirectory(dirPath: string, metrics: string[], languages?: string[], includeTests = false, results: any) {
-  await analyzeDirectoryRecursive(dirPath, metrics, languages, includeTests, results, 0);
+async function analyzeDirectory(dirPath: string, metrics: string[], results: any, languages?: string[], includeTests = false) {
+  await analyzeDirectoryRecursive(dirPath, metrics, results, languages, includeTests, 0);
 
   // Calculate summary
   results.summary.totalFiles = results.fileMetrics.length;
@@ -149,7 +149,7 @@ async function analyzeDirectory(dirPath: string, metrics: string[], languages?: 
   }
 }
 
-async function analyzeDirectoryRecursive(dirPath: string, metrics: string[], languages?: string[], includeTests = false, results: any, depth = 0) {
+async function analyzeDirectoryRecursive(dirPath: string, metrics: string[], results: any, languages?: string[], includeTests = false, depth = 0) {
   if (depth > 10) return; // Prevent infinite recursion
 
   try {
@@ -172,7 +172,7 @@ async function analyzeDirectoryRecursive(dirPath: string, metrics: string[], lan
         }
 
       } else if (item.isDirectory() && !shouldSkipDirectory(item.name)) {
-        await analyzeDirectoryRecursive(fullPath, metrics, languages, includeTests, results, depth + 1);
+        await analyzeDirectoryRecursive(fullPath, metrics, results, languages, includeTests, depth + 1);
       }
     }
   } catch (error) {

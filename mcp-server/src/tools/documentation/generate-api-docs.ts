@@ -21,7 +21,7 @@ export const generateApiDocsTool: ToolHandler = {
   name: 'generate-api-docs',
   description: 'Auto-generate API documentation from endpoints and code analysis',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       source: {
         type: 'string',
@@ -505,7 +505,7 @@ function extractSchemasFromCode(content: string, fileName: string) {
       }
 
       schemas[interfaceName] = {
-        type: 'object',
+        type: 'object' as const,
         properties
       };
     }

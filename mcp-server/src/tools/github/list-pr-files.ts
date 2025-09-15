@@ -11,7 +11,7 @@ export class ListPRFilesTool implements Tool {
   description = 'List all files changed in a GitHub pull request with their statistics';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

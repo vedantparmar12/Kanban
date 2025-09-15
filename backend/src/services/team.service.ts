@@ -1,6 +1,6 @@
 
 import { prisma } from '../database/connection';
-import { Role, Team, User } from '@prisma/client';
+import { Role, Team } from '@prisma/client';
 import { permissionService } from './permission.service';
 import { AppError } from '../api/middlewares/error.middleware';
 

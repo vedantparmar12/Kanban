@@ -8,9 +8,10 @@ const logger = createLogger('AddCommentTool');
 export class AddCommentTool implements Tool {
   name = 'add_pr_comment';
   description = 'Add a review comment to a specific line in a GitHub pull request';
+  [key: string]: unknown;
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

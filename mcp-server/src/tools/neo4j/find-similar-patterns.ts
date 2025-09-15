@@ -18,7 +18,7 @@ export const findSimilarPatternsTool: ToolHandler = {
   name: 'find-similar-patterns',
   description: 'Discover similar code implementations and patterns using graph analysis',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       pattern: {
         type: 'string',
@@ -267,7 +267,15 @@ function processPatternResults(result: any, includeMetrics: boolean) {
     const entity = record.get('entity');
     const similarityScore = record.get('similarityScore');
 
-    const pattern = {
+    const pattern: {
+      id: any;
+      name: any;
+      type: any;
+      similarityScore: number;
+      properties: any;
+      metrics?: any;
+      relatedEntities?: any;
+    } = {
       id: entity.elementId || entity.identity?.toString(),
       name: entity.name || entity.title,
       type: entity.labels?.[0] || 'Unknown',

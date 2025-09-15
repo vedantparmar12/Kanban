@@ -11,7 +11,7 @@ export class ReadPRTool implements Tool {
   description = 'Read detailed information about a GitHub pull request';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

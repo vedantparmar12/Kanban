@@ -11,7 +11,7 @@ export class LinkTaskToPRTool implements Tool {
   description = 'Link a Kanban task to a GitHub pull request for tracking and automation';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       taskId: {
         type: 'string',

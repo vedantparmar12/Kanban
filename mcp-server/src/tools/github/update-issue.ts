@@ -10,7 +10,7 @@ export class UpdateIssueTool implements Tool {
   description = 'Update an existing GitHub issue';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

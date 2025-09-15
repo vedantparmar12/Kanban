@@ -164,7 +164,7 @@ export class AutomationService {
       }
     } catch (error) {
       logger.error(`Error executing automation rule ${rule.id}:`, error);
-      await this.recordExecution(rule.id, context.taskId, 'failed', error.message);
+      await this.recordExecution(rule.id, context.taskId, 'failed', (error as any).message);
     }
   }
 
@@ -311,7 +311,7 @@ export class AutomationService {
       });
     } catch (error) {
       // Ignore if label already exists
-      if (!error.code || error.code !== 'P2002') {
+      if (!(error as any).code || (error as any).code !== 'P2002') {
         throw error;
       }
     }
@@ -326,7 +326,7 @@ export class AutomationService {
   private async setPriority(taskId: string, priority: string) {
     await prisma.task.update({
       where: { id: taskId },
-      data: { priority }
+      data: { priority: priority as any }
     });
   }
 

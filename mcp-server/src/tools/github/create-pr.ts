@@ -10,7 +10,7 @@ export class CreatePRTool implements Tool {
   description = 'Create a new GitHub pull request';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

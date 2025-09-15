@@ -28,7 +28,7 @@ export const updateChangelogTool: ToolHandler = {
   name: 'update-changelog',
   description: 'Maintain automated changelogs from commits, PRs, and manual entries',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       source: {
         type: 'string',
@@ -47,7 +47,7 @@ export const updateChangelogTool: ToolHandler = {
       changes: {
         type: 'array',
         items: {
-          type: 'object',
+          type: 'object' as const,
           properties: {
             type: {
               type: 'string',

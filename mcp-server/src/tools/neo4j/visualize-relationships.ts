@@ -19,7 +19,7 @@ export const visualizeRelationshipsTool: ToolHandler = {
   name: 'visualize-relationships',
   description: 'Generate graph visualizations of node relationships',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       nodeId: {
         type: 'string',

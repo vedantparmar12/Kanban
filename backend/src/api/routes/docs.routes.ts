@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/readme',
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (_req: AuthRequest, res, next) => {
     try {
       const readme = await docGeneratorService.getReadme();
       res.json({ content: readme });

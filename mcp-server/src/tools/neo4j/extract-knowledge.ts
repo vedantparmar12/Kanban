@@ -21,7 +21,7 @@ export const extractKnowledgeTool: ToolHandler = {
   name: 'extract-knowledge',
   description: 'Build knowledge graph from codebases, extracting entities and relationships',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       source: {
         type: 'string',
@@ -171,7 +171,8 @@ async function extractFromRepository(repoUrl: string, extractionTypes: string[],
   const contents = await githubClient.getRepositoryContents(owner, repo);
 
   // Process files
-  await processRepositoryContents(githubClient, owner, repo, contents, extractionTypes, results, depth, includeTests, '', batchSize);
+  const contentsArray = Array.isArray(contents) ? contents : [contents];
+  await processRepositoryContents(githubClient, owner, repo, contentsArray, extractionTypes, results, depth, includeTests, '', batchSize);
 
   // Extract issues and PRs if requested
   if (extractionTypes.includes('tasks')) {

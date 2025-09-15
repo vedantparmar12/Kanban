@@ -11,7 +11,7 @@ export class ReadFileDiffTool implements Tool {
   description = 'Read the diff for a specific file in a GitHub pull request';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

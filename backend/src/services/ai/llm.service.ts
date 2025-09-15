@@ -22,7 +22,7 @@ export class LLMService {
     model?: string;
   }): Promise<string> {
     const cacheKey = `llm:${this.hashPrompt(prompt)}`;
-    const cached = await cache.get<string>(cacheKey);
+    const cached = await cache.get(cacheKey);
     
     if (cached) {
       return cached;
@@ -42,7 +42,7 @@ export class LLMService {
       
       return result;
     } catch (error) {
-      logger.error('LLM generation failed via MCP gateway:', error.response?.data || error.message);
+      logger.error('LLM generation failed via MCP gateway:', (error as any).response?.data || (error as any).message);
       throw error;
     }
   }
@@ -124,7 +124,7 @@ Provide a brief, bullet-point summary.`;
             result.complexity = 'high';
           }
         } else if (currentSection === 'suggestions') {
-          result.suggestions.push(line.replace(/^[-*]\s*/, '').trim());
+          result.suggestions.push(line.replace(/^[-*]\s*/, '').trim() as never);
         }
       }
     }

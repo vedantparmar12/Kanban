@@ -14,7 +14,7 @@ import { Neo4jClient } from './clients/neo4j-client.js';
 import { createLogger } from './utils/logger.js';
 import { MCPTool } from './types/mcp.js';
 import { wrapTool } from './utils/tool-wrapper.js';
-import { Tool } from '@modelcontextprotocol/sdk/server/index.js';
+// Tool type definition for MCP tools
 
 // GitHub Tools
 import { ReadPRTool } from './tools/github/read-pr.js';
@@ -61,7 +61,7 @@ export class KanbanMCPServer {
   private githubClient: GitHubClient;
   private kanbanClient: KanbanClient;
   private neo4jClient: Neo4jClient;
-  private tools: Map<string, Tool>;
+  private tools: Map<string, any>;
 
   constructor() {
     this.server = new Server(
@@ -91,7 +91,7 @@ export class KanbanMCPServer {
   }
 
   private registerTools(): void {
-    const classBasedTools: Tool[] = [
+    const classBasedTools: any[] = [
       // GitHub tools
       new ReadPRTool(this.githubClient),
       new ListPRFilesTool(this.githubClient),
@@ -192,7 +192,7 @@ export class KanbanMCPServer {
         logger.error({ tool: name, error }, 'Tool execution failed');
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error.message}`
+          `Tool execution failed: ${(error as any).message}`
         );
       }
     });
