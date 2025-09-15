@@ -7,6 +7,7 @@ import type { CreateReviewParams } from '../../types/github.js';
 const logger = createLogger('SubmitReviewTool');
 
 export class SubmitReviewTool implements Tool {
+  [key: string]: unknown;
   name = 'submit_review';
   description = 'Submit a complete review for a GitHub pull request';
 

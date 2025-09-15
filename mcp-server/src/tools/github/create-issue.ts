@@ -6,6 +6,7 @@ import { createMCPErrorResponse } from '../../utils/error-handler.js';
 const logger = createLogger('CreateIssueTool');
 
 export class CreateIssueTool implements Tool {
+  [key: string]: unknown;
   name = 'create_issue';
   description = 'Create a new GitHub issue';
 

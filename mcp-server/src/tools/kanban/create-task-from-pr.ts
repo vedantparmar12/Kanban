@@ -7,6 +7,7 @@ import { createMCPErrorResponse } from '../../utils/error-handler.js';
 const logger = createLogger('CreateTaskFromPRTool');
 
 export class CreateTaskFromPRTool implements Tool {
+  [key: string]: unknown;
   name = 'create_task_from_pr';
   description = 'Create a new Kanban task from a GitHub pull request';
 

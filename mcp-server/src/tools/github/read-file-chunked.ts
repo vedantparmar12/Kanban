@@ -8,6 +8,7 @@ import type { FileDiff } from '../../types/github.js';
 const logger = createLogger('ReadFileChunkedTool');
 
 export class ReadFileChunkedTool implements Tool {
+  [key: string]: unknown;
   name = 'read_file_chunked';
   description = 'Read a file diff from a PR with intelligent chunking for large files';
 

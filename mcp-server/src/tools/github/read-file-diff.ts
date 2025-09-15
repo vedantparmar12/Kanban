@@ -7,6 +7,7 @@ import type { FileDiff } from '../../types/github.js';
 const logger = createLogger('ReadFileDiffTool');
 
 export class ReadFileDiffTool implements Tool {
+  [key: string]: unknown;
   name = 'read_file_diff';
   description = 'Read the diff for a specific file in a GitHub pull request';
 

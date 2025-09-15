@@ -7,6 +7,7 @@ import type { PullRequest } from '../../types/github.js';
 const logger = createLogger('ReadPRTool');
 
 export class ReadPRTool implements Tool {
+  [key: string]: unknown;
   name = 'read_pr';
   description = 'Read detailed information about a GitHub pull request';
 
