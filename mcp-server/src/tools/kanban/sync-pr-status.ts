@@ -7,6 +7,7 @@ import { createMCPErrorResponse } from '../../utils/error-handler.js';
 const logger = createLogger('SyncPRStatusTool');
 
 export class SyncPRStatusTool implements Tool {
+  [key: string]: unknown;
   name = 'sync_pr_status';
   description = 'Sync GitHub pull request status changes to linked Kanban tasks';
 

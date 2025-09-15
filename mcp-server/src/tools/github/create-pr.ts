@@ -6,6 +6,7 @@ import { createMCPErrorResponse } from '../../utils/error-handler.js';
 const logger = createLogger('CreatePRTool');
 
 export class CreatePRTool implements Tool {
+  [key: string]: unknown;
   name = 'create_pr';
   description = 'Create a new GitHub pull request';
 

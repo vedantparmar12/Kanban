@@ -76,7 +76,7 @@ export const queryGraphTool: ToolHandler = {
         records: result.records.map(record => {
           const recordData: Record<string, any> = {};
           record.keys.forEach((key, index) => {
-            recordData[key] = record.get(index);
+            recordData[String(key)] = record.get(index);
           });
           return recordData;
         }),

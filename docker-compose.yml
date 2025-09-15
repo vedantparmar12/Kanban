@@ -58,14 +58,12 @@ services:
       - "3000:3000"
     networks:
       - kanban_network
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+    
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: ../docker/Dockerfile.frontend
+      context: .
+      dockerfile: docker/Dockerfile.frontend
     container_name: kanban_frontend
     environment:
       VITE_API_URL: http://localhost:3000

@@ -7,6 +7,7 @@ import type { FileDiff } from '../../types/github.js';
 const logger = createLogger('ListPRFilesTool');
 
 export class ListPRFilesTool implements Tool {
+  [key: string]: unknown;
   name = 'list_pr_files';
   description = 'List all files changed in a GitHub pull request with their statistics';
 
