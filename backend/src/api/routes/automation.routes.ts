@@ -129,7 +129,7 @@ router.get('/:ruleId/executions',
 // Get available trigger types and their configurations
 router.get('/trigger-types',
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (_req: AuthRequest, res, next) => {
     try {
       const triggerTypes = [
         {
@@ -203,7 +203,7 @@ router.get('/trigger-types',
 // Get available action types and their configurations
 router.get('/action-types',
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (_req: AuthRequest, res, next) => {
     try {
       const actionTypes = [
         {

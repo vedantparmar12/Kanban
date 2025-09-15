@@ -11,7 +11,7 @@ export class SyncPRStatusTool implements Tool {
   description = 'Sync GitHub pull request status changes to linked Kanban tasks';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       taskId: {
         type: 'string',

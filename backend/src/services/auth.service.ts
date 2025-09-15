@@ -197,12 +197,12 @@ export class AuthService {
 
     const accessToken = jwt.sign(payload, appConfig.jwtSecret, {
       expiresIn: appConfig.jwtExpiry
-    });
+    } as jwt.SignOptions);
 
     const refreshToken = jwt.sign(
       { userId: user.id },
       appConfig.jwtSecret,
-      { expiresIn: appConfig.refreshTokenExpiry }
+      { expiresIn: appConfig.refreshTokenExpiry } as jwt.SignOptions
     );
 
     const expiresAt = new Date();

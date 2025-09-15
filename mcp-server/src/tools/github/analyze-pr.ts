@@ -8,9 +8,10 @@ const logger = createLogger('AnalyzePRTool');
 export class AnalyzePRTool implements Tool {
   name = 'analyze_pr';
   description = 'Analyze a GitHub pull request for code quality, complexity, and potential issues';
+  [key: string]: unknown;
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

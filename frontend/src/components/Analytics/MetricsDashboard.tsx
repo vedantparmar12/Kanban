@@ -133,7 +133,7 @@ export const MetricsDashboard: React.FC<MetricsDashboardProps> = ({ boardId }) =
     throughput: col.throughput
   }));
 
-  const wipViolationData = metrics.columnMetrics.map(col => ({
+  const _wipViolationData = metrics.columnMetrics.map(col => ({
     column: col.columnName,
     violations: col.wipViolations,
     tasksInProgress: col.tasksInProgress

@@ -133,7 +133,7 @@ export class TaskService {
       userId,
       boardId: column.boardId,
       columnId: task.columnId,
-      swimlaneId: task.swimlaneId,
+      swimlaneId: task.swimlaneId || undefined,
       currentValues: task
     });
 

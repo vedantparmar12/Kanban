@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -11,8 +11,7 @@ import {
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  horizontalListSortingStrategy
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
@@ -30,6 +29,7 @@ interface Task {
   title: string;
   description?: string;
   status: string;
+  columnId: string;
   priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
   assignee?: {
     id: string;
@@ -76,13 +76,13 @@ export const SwimlaneView: React.FC<SwimlaneViewProps> = ({
   columns,
   swimlanes,
   onTaskMove,
-  onSwimlaneReorder,
+  onSwimlaneReorder: _onSwimlaneReorder,
   onCreateSwimlane,
   onEditSwimlane,
   onDeleteSwimlane
 }) => {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [showCreateSwimlane, setShowCreateSwimlane] = useState(false);
+  const [_showCreateSwimlane, setShowCreateSwimlane] = useState(false);
   const [newSwimlane, setNewSwimlane] = useState({ name: '', description: '', color: '#3B82F6' });
 
   const sensors = useSensors(
@@ -153,7 +153,7 @@ export const SwimlaneView: React.FC<SwimlaneViewProps> = ({
     }, 0);
   };
 
-  const handleCreateSwimlane = async (e: React.FormEvent) => {
+  const _handleCreateSwimlane = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await fetch('/api/swimlanes', {

@@ -12,7 +12,7 @@ export class ReadFileChunkedTool implements Tool {
   description = 'Read a file diff from a PR with intelligent chunking for large files';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

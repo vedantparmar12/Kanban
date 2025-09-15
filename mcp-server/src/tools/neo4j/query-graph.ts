@@ -16,14 +16,14 @@ export const queryGraphTool: ToolHandler = {
   name: 'query-graph',
   description: 'Execute Cypher queries on the Neo4j knowledge graph',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       query: {
         type: 'string',
         description: 'Cypher query to execute'
       },
       parameters: {
-        type: 'object',
+        type: 'object' as const,
         description: 'Parameters for the Cypher query',
         additionalProperties: true
       },

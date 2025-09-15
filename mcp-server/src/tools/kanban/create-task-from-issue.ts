@@ -11,7 +11,7 @@ export class CreateTaskFromIssueTool implements Tool {
   description = 'Create a new Kanban task from a GitHub issue';
 
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       owner: {
         type: 'string',

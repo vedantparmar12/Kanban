@@ -17,8 +17,16 @@ import type {
 const logger = createLogger('GitHubClient');
 
 export class GitHubClient {
+  private static instance: GitHubClient;
   private octokit: Octokit;
   private rateLimiter: RateLimiter;
+
+  static getInstance(token?: string): GitHubClient {
+    if (!GitHubClient.instance) {
+      GitHubClient.instance = new GitHubClient(token);
+    }
+    return GitHubClient.instance;
+  }
 
   constructor(token?: string) {
     const authToken = token || process.env.GITHUB_TOKEN;
@@ -80,6 +88,7 @@ export class GitHubClient {
         created_at: data.created_at,
         updated_at: data.updated_at,
         user: {
+          id: data.user?.id || 0,
           login: data.user?.login || 'unknown',
           avatar_url: data.user?.avatar_url || ''
         },
@@ -97,7 +106,8 @@ export class GitHubClient {
         comments: data.comments,
         review_comments: data.review_comments,
         commits: data.commits,
-        changed_files: data.changed_files
+        changed_files: data.changed_files,
+        html_url: data.html_url
       };
     });
   }
@@ -143,6 +153,7 @@ export class GitHubClient {
         created_at: data.created_at,
         updated_at: data.updated_at,
         user: {
+          id: data.user?.id || 0,
           login: data.user?.login || 'unknown',
           avatar_url: data.user?.avatar_url || ''
         },
@@ -160,7 +171,8 @@ export class GitHubClient {
         comments: data.comments || 0,
         review_comments: data.review_comments || 0,
         commits: data.commits || 0,
-        changed_files: data.changed_files || 0
+        changed_files: data.changed_files || 0,
+        html_url: data.html_url
       };
     });
   }
@@ -288,7 +300,7 @@ export class GitHubClient {
         commit_id: pr.head.sha,
         body: params.body,
         event: params.event === 'PENDING' ? undefined : params.event,
-        comments: params.comments?.map(c => ({
+        comments: params.comments?.map((c: any) => ({
           path: c.path,
           line: c.line,
           start_line: c.start_line,
@@ -305,6 +317,7 @@ export class GitHubClient {
         body: data.body || '',
         state: data.state as Review['state'],
         user: {
+          id: data.user?.id || 0,
           login: data.user?.login || 'unknown',
           avatar_url: data.user?.avatar_url || ''
         },
@@ -344,6 +357,7 @@ export class GitHubClient {
         updated_at: data.updated_at,
         closed_at: data.closed_at,
         user: {
+          id: data.user?.id || 0,
           login: data.user?.login || 'unknown',
           avatar_url: data.user?.avatar_url || ''
         },
@@ -360,7 +374,8 @@ export class GitHubClient {
           id: data.milestone.id,
           number: data.milestone.number,
           title: data.milestone.title
-        } : undefined
+        } : undefined,
+        html_url: data.html_url
       };
     });
   }
@@ -402,6 +417,7 @@ export class GitHubClient {
         updated_at: data.updated_at,
         closed_at: data.closed_at,
         user: {
+          id: data.user?.id || 0,
           login: data.user?.login || 'unknown',
           avatar_url: data.user?.avatar_url || ''
         },
@@ -418,7 +434,8 @@ export class GitHubClient {
           id: data.milestone.id,
           number: data.milestone.number,
           title: data.milestone.title
-        } : undefined
+        } : undefined,
+        html_url: data.html_url
       };
     });
   }
@@ -454,6 +471,56 @@ export class GitHubClient {
           avatar_url: data.user?.avatar_url || ''
         }
       };
+    });
+  }
+
+  async getRepository(owner: string, repo: string) {
+    return this.rateLimiter.withBackoff(async () => {
+      logger.debug({ owner, repo }, 'Fetching repository details');
+
+      const { data, headers } = await this.octokit.repos.get({
+        owner,
+        repo
+      });
+
+      this.rateLimiter.updateFromHeaders(headers as any);
+
+      return {
+        id: data.id,
+        name: data.name,
+        full_name: data.full_name,
+        description: data.description,
+        html_url: data.html_url,
+        clone_url: data.clone_url,
+        language: data.language,
+        size: data.size,
+        stargazers_count: data.stargazers_count,
+        watchers_count: data.watchers_count,
+        forks_count: data.forks_count,
+        open_issues_count: data.open_issues_count,
+        default_branch: data.default_branch,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        pushed_at: data.pushed_at,
+        topics: data.topics || []
+      };
+    });
+  }
+
+  async getRepositoryContents(owner: string, repo: string, path: string = '', ref?: string) {
+    return this.rateLimiter.withBackoff(async () => {
+      logger.debug({ owner, repo, path, ref }, 'Fetching repository contents');
+
+      const { data, headers } = await this.octokit.repos.getContent({
+        owner,
+        repo,
+        path,
+        ...(ref && { ref })
+      });
+
+      this.rateLimiter.updateFromHeaders(headers as any);
+
+      return data;
     });
   }
 

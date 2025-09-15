@@ -8,6 +8,7 @@ export class ToolWrapper implements Tool {
   public name: string;
   public description: string;
   public inputSchema: any;
+  [key: string]: unknown;
 
   constructor(private toolHandler: ToolHandler) {
     this.name = toolHandler.name.replace(/-/g, '_'); // MCP uses underscores
@@ -38,6 +39,6 @@ export class ToolWrapper implements Tool {
   }
 }
 
-export function wrapTool(toolHandler: ToolHandler): Tool {
+export function wrapTool(toolHandler: ToolHandler): ToolWrapper {
   return new ToolWrapper(toolHandler);
 }

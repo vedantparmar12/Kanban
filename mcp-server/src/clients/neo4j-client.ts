@@ -45,8 +45,8 @@ export class Neo4jClient {
       this.connected = true;
 
     } catch (error) {
-      logger.error({ error: error.message }, 'Failed to connect to Neo4j');
-      throw new Error(`Neo4j connection failed: ${error.message}`);
+      logger.error({ error: (error as any).message }, 'Failed to connect to Neo4j');
+      throw new Error(`Neo4j connection failed: ${(error as any).message}`);
     }
   }
 
@@ -86,7 +86,7 @@ export class Neo4jClient {
       return result;
 
     } catch (error) {
-      logger.error({ error: error.message, cypher }, 'Query execution failed');
+      logger.error({ error: (error as any).message, cypher }, 'Query execution failed');
       throw error;
 
     } finally {
@@ -135,7 +135,7 @@ export class Neo4jClient {
 
         for (const query of queries) {
           const result = await tx.run(query.cypher, query.parameters || {});
-          results.push(result);
+          results.push(result as any);
         }
 
         return results;
@@ -156,7 +156,7 @@ export class Neo4jClient {
       return result.records.length === 1;
 
     } catch (error) {
-      logger.error({ error: error.message }, 'Connection verification failed');
+      logger.error({ error: (error as any).message }, 'Connection verification failed');
       return false;
     }
   }

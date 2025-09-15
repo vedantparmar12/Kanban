@@ -29,9 +29,9 @@ router.get('/',
         limit: limit as number | undefined,
         offset: offset as number | undefined
       });
-      return res.json(result);
+      res.json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -44,12 +44,12 @@ router.get('/counts',
       const result = await notificationService.getUserNotifications(req.user!.id, {
         limit: 0
       });
-      return res.json({
+      res.json({
         totalCount: result.totalCount,
         unreadCount: result.unreadCount
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -64,9 +64,9 @@ router.put('/mark-read',
         req.user!.id,
         req.body.notificationIds
       );
-      return res.json({ markedCount: result.count });
+      res.json({ markedCount: result.count });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -77,9 +77,9 @@ router.put('/mark-all-read',
   async (req: AuthRequest, res, next) => {
     try {
       const result = await notificationService.markAllAsRead(req.user!.id);
-      return res.json({ markedCount: result.count });
+      res.json({ markedCount: result.count });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -96,7 +96,7 @@ router.delete('/:notificationId',
       );
       return res.status(204).send();
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -107,9 +107,9 @@ router.delete('/',
   async (req: AuthRequest, res, next) => {
     try {
       const result = await notificationService.deleteAllNotifications(req.user!.id);
-      return res.json({ deletedCount: result.count });
+      res.json({ deletedCount: result.count });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -132,7 +132,7 @@ if (process.env.NODE_ENV === 'development') {
           message: req.body.message,
           recipients: req.body.recipientId ? [req.body.recipientId] : [req.user!.id]
         });
-        return res.json(notifications);
+        res.json(notifications);
       } catch (error) {
         next(error);
       }

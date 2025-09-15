@@ -25,9 +25,9 @@ router.post('/register',
       
       // Don't send refresh token in response body
       const { refreshToken, ...responseData } = result;
-      res.status(201).json(responseData);
+      return res.status(201).json(responseData);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -51,7 +51,7 @@ router.post('/login',
       const { refreshToken, ...responseData } = result;
       return res.json(responseData);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -76,9 +76,9 @@ router.post('/refresh',
       });
       
       // Only send access token in response
-      res.json({ accessToken: result.accessToken });
+      return res.json({ accessToken: result.accessToken });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -95,7 +95,7 @@ router.post('/logout',
       
       res.json({ message: 'Logged out successfully' });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -113,7 +113,7 @@ router.put('/password',
       );
       res.json({ message: 'Password changed successfully' });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -132,14 +132,13 @@ router.get('/me',
           lastName: true,
           avatar: true,
           role: true,
-          emailVerified: true,
           createdAt: true,
           lastLogin: true
         }
       });
       res.json(user);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );
@@ -164,7 +163,7 @@ router.put('/profile',
       });
       res.json(user);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 );

@@ -18,7 +18,7 @@ export const analyzeCodeDependenciesTool: ToolHandler = {
   name: 'analyze-code-dependencies',
   description: 'Trace code dependency paths and analyze relationships between code entities',
   inputSchema: {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       codeEntity: {
         type: 'string',
@@ -172,7 +172,12 @@ function processDependencyResults(result: any, includeWeights: boolean) {
     ...(record.get('relationships') && { relationships: record.get('relationships') })
   }));
 
-  const analysis = {
+  const analysis: {
+    count: number;
+    items: any[];
+    byDistance: any;
+    weights?: any;
+  } = {
     count: items.length,
     items,
     byDistance: groupByDistance(items)

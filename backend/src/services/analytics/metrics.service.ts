@@ -1,7 +1,5 @@
 import { prisma } from '../../database/connection';
 import { AppError } from '../../api/middlewares/error.middleware';
-import { logger } from '../../utils/logger';
-import { TaskStatus } from '@prisma/client';
 
 export interface TaskMetrics {
   taskId: string;
@@ -374,8 +372,8 @@ export class MetricsService {
 
   private calculateTimeInStatuses(
     transitions: { status: string; timestamp: Date }[],
-    createdAt: Date,
-    completedAt?: Date
+    _createdAt: Date,
+    _completedAt?: Date
   ): Record<string, number> {
     const timeInStatuses: Record<string, number> = {};
     
@@ -384,7 +382,7 @@ export class MetricsService {
       const next = transitions[i + 1];
       
       const startTime = current.timestamp;
-      const endTime = next ? next.timestamp : (completedAt || new Date());
+      const endTime = next ? next.timestamp : (_completedAt || new Date());
       
       timeInStatuses[current.status] = this.calculateHoursDifference(startTime, endTime);
     }
@@ -392,7 +390,7 @@ export class MetricsService {
     return timeInStatuses;
   }
 
-  private async calculateWipViolations(columnId: string, dateFrom?: Date, dateTo?: Date): Promise<number> {
+  private async calculateWipViolations(columnId: string, _dateFrom?: Date, _dateTo?: Date): Promise<number> {
     const column = await prisma.column.findUnique({
       where: { id: columnId },
       select: { wipLimit: true }
